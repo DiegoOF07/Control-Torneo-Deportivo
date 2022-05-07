@@ -161,11 +161,15 @@ function editarMiCuenta(req, res){
 }
 
 function verUsuarios(req, res){
-    Usuarios.find({}, (err, usuariosEncontrado)=>{
-        if (err) return res.status(500).send({ mensaje: "Error en la peticion" })
-        if (!usuariosEncontrado) return res.status(500).send({ mensaje: "No se pudo visualizar" })
-        return res.status(200).send({ usuarios: usuariosEncontrado })
-    })
+    if(req.user.rol==='ADMIN'){
+        Usuarios.find({}, (err, usuariosEncontrado)=>{
+            if (err) return res.status(500).send({ mensaje: "Error en la peticion" })
+            if (!usuariosEncontrado) return res.status(500).send({ mensaje: "No se pudo visualizar" })
+            return res.status(200).send({ usuarios: usuariosEncontrado })
+        })
+    }else{
+        return res.status(500).send({ mensaje: 'Solo el administrador puede ver a los demas usuarios'})
+    } 
 }
 
 module.exports = {
