@@ -56,13 +56,12 @@ function login(req, res) {
 function registrarUsuarios(req, res) {
     var usuarioModel = new Usuarios()
     var parametros = req.body
-    if (parametros.username && parametros.nombre && parametros.password && parametros.nit) {
+    if (parametros.username && parametros.nombre && parametros.password) {
         Usuarios.findOne({ username: parametros.username }, (err, usuarioEncontrado) => {
             if (underscore.isEmpty(usuarioEncontrado)) {
                 usuarioModel.username = parametros.username
                 usuarioModel.nombre = parametros.nombre
-                usuarioModel.rol = 'CLIENTE'
-                usuarioModel.nit = parametros.nit
+                usuarioModel.rol = 'USUARIO'
                 bcrypt.hash(parametros.password, null, null, (err, passwordEncriptada) => {
                     usuarioModel.password = passwordEncriptada
                     usuarioModel.save((err, usuarioGuardado) => {
@@ -85,10 +84,10 @@ function editarUsuarios(req, res) {
     var idUser = req.params.idUser;
     var parametros = req.body;
     if (req.user.rol == 'ADMIN') {
-        Usuario.findOne({ _id: idUser }, (err, usuarioEncontrado) => {
+        Usuarios.findOne({ _id: idUser }, (err, usuarioEncontrado) => {
             if (!underscore.isEmpty(usuarioEncontrado)) {
-                if (usuarioEncontrado.rol == 'CLIENTE') {
-                    Usuario.findByIdAndUpdate(idUser, parametros, { new: true }, (err, usuarioActualizado) => {
+                if (usuarioEncontrado.rol == 'USUARIO') {
+                    Usuarios.findByIdAndUpdate(idUser, parametros, { new: true }, (err, usuarioActualizado) => {
                         if (err) return res.status(500).send({ mensaje: 'Error en la peticion' })
                         if (usuarioActualizado.length == 0) return res.status(500).send({ mensaje: 'Error, no se pudo actualizar el usuario' })
 
@@ -111,10 +110,10 @@ function editarUsuarios(req, res) {
 function eliminarUsuarios(req, res) {
     var idUser = req.params.idUsuario;
     if (req.user.rol == 'ADMIN') {
-        Usuario.findOne({ _id: idUser }, (err, usuarioEncontrado) => {
+        Usuarios.findOne({ _id: idUser }, (err, usuarioEncontrado) => {
             if (!underscore.isEmpty(usuarioEncontrado)) {
-                if (usuarioEncontrado.rol == 'CLIENTE') {
-                    Usuario.findByIdAndDelete(idUser, (err, usuarioEliminado) => {
+                if (usuarioEncontrado.rol == 'USUARIO') {
+                    Usuarios.findByIdAndDelete(idUser, (err, usuarioEliminado) => {
                         if (err) return res.status(500).send({ mensaje: 'Error en la peticion' })
                         if (usuarioEliminado.length == 0) return res.status(500).send({ mensaje: 'Error, no se pudo eliminar el usuario' })
 
@@ -128,15 +127,15 @@ function eliminarUsuarios(req, res) {
             }
         })
     } else {
-        return res.status(500).send({ mensaje: 'Solo el administrador puede eliminar a los clientes' })
+        return res.status(500).send({ mensaje: 'Solo el administrador puede eliminar a los usuarios' })
     }
 }
 
 function eliminarMiCuenta(req, res){
-    if(req.user.rol=='CLIENTE'){
-        Usuario.findOne({_id: req.user.sub}, (err, usuarioEncontrado)=>{
+    if(req.user.rol=='USUARIO'){
+        Usuarios.findOne({_id: req.user.sub}, (err, usuarioEncontrado)=>{
         if(!underscore.isEmpty(usuarioEncontrado)){
-            Usuario.findByIdAndDelete(usuarioEncontrado._id,(err, usuarioEliminado)=>{
+            Usuarios.findByIdAndDelete(usuarioEncontrado._id,(err, usuarioEliminado)=>{
                 return res.status(200).send({ cuenta_eliminada: usuarioEliminado})
             })
         }else{
@@ -150,9 +149,9 @@ function eliminarMiCuenta(req, res){
 
 function editarMiCuenta(req, res){
     var parametros = req.body
-    Usuario.findOne({_id: req.user.sub},(err, usuaurioEncontrado)=>{
+    Usuarios.findOne({_id: req.user.sub},(err, usuaurioEncontrado)=>{
         if(!underscore.isEmpty(usuarioEncontrado)){
-            Usuario.findByIdAndUpdate(req.user.sub, parametros,{new: true},(err, usuarioActualizado)=>{
+            Usuarios.findByIdAndUpdate(req.user.sub, parametros,{new: true},(err, usuarioActualizado)=>{
                 return res.status(200).send({actualizacion: usuarioActualizado})
             })
         }else{
@@ -162,7 +161,7 @@ function editarMiCuenta(req, res){
 }
 
 function verUsuarios(req, res){
-    Usuario.find({}, (err, usuariosEncontrado)=>{
+    Usuarios.find({}, (err, usuariosEncontrado)=>{
         if (err) return res.status(500).send({ mensaje: "Error en la peticion" })
         if (!usuariosEncontrado) return res.status(500).send({ mensaje: "No se pudo visualizar" })
         return res.status(200).send({ usuarios: usuariosEncontrado })
