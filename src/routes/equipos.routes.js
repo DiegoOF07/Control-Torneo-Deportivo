@@ -7,6 +7,6 @@ const api=express.Router();
 api.post('/agregarEquipos',md_autenticacion.Auth, equipoControlador.agregarEquipos)
 api.put('/editarEquipo/:nombreEquipo',md_autenticacion.Auth, equipoControlador.editarEquipos)
 api.delete('/eliminarEquipo/:nombreEquipo', md_autenticacion.Auth, equipoControlador.eliminarEquipos)
-api.get('/verEquipos',md_autenticacion.Auth, equipoControlador.verEquipos)
+api.get('/verEquipos/:nombreLiga',md_autenticacion.Auth, equipoControlador.verEquipos)
 
 module.exports =api;

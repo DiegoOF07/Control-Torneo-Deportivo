@@ -31,7 +31,7 @@ function agregarEquipos(req, res) {
                     }
                 })
             } else {
-                return res.status(500).send({ mensaje: 'Este equipo ya existe, utilice otro nombre' })
+                return res.status(500).send({ mensaje: 'Usted ya ha agregado este equipo, agregue otro' })
             }
         })
     } else {
@@ -44,11 +44,17 @@ function editarEquipos(req, res) {
     var parametros = req.body;
     Equipos.findOne({ nombre: nombreEquipo, idUsuario: req.user.sub }, (err, equipoEncontrado) => {
         if (!underscore.isEmpty(equipoEncontrado)) {
-            Equipos.findByIdAndUpdate(equipoEncontrado._id, parametros, { new: true }, (err, equipoActualizado) => {
-                if (err) return res.status(500).send({ mensaje: 'Error en la peticion' })
-                if (underscore.isEmpty(equipoActualizado)) return res.status(500).send({ mensaje: 'Error, no se pudo actualizar el equipo ' })
-
-                return res.status(200).send({ Equipo: equipoActualizado })
+            Equipos.findOne({ nombre: parametros.nombre, idUsuario: req.user.sub},(err,editarEquipoEncontrado)=>{
+                if(underscore.isEmpty(editarEquipoEncontrado)){
+                    Equipos.findByIdAndUpdate(equipoEncontrado._id, parametros, { new: true }, (err, equipoActualizado) => {
+                        if (err) return res.status(500).send({ mensaje: 'Error en la peticion' })
+                        if (underscore.isEmpty(equipoActualizado)) return res.status(500).send({ mensaje: 'Error, no se pudo actualizar el equipo ' })
+        
+                        return res.status(200).send({ Equipo: equipoActualizado })
+                    })
+                }else{
+                    return res.status(500).send({ mensaje: 'No puede asignar un nombre de un equipo ya existente' })
+                }
             })
         } else {
             return res.status(500).send({ mensaje: 'El equipo que desea editar no existe' })
@@ -60,7 +66,7 @@ function eliminarEquipos(req, res) {
     var nombreEquipo = req.params.nombreEquipo;
     Equipos.findOne({ nombre: nombreEquipo, idUsuario: req.user.sub }, (err, equipoEncontrado) => {
         if (!underscore.isEmpty(equipoEncontrado)) {
-            Ligas.findByIdAndDelete(equipoEncontrado._id, (err, equipoEliminado) => {
+            Equipos.findByIdAndDelete(equipoEncontrado._id, (err, equipoEliminado) => {
                 if (err) return res.status(500).send({ mensaje: 'Error en la peticion' })
                 if (underscore.isEmpty(equipoEliminado)) return res.status(500).send({ mensaje: 'Error, no se pudo eliminar el equipo' })
 
@@ -73,11 +79,18 @@ function eliminarEquipos(req, res) {
 }
 
 function verEquipos(req, res) {
-    Equipos.find({ idUsuario: req.user.sub }, (err, equiposEncontrados) => {
-        if (err) return res.status(500).send({ mensaje: "Error en la peticion" })
-        if (!equiposEncontrados) return res.status(500).send({ mensaje: "No se pudo visualizar" })
-        return res.status(200).send({ Ligas: ligasEncontradas })
-    }).populate('idLiga idUsuario', 'nombre')
+    liga=req.params.nombreLiga;
+    Ligas.findOne({nombre: liga, idUsuario: req.user.sub}, (err, ligaEncontrada)=>{
+        if(!underscore.isEmpty(ligaEncontrada)){
+            Equipos.find({ idUsuario: req.user.sub, idLiga: ligaEncontrada._id }, (err, equiposEncontrados) => {
+                if (err) return res.status(500).send({ mensaje: "Error en la peticion" })
+                if (!equiposEncontrados) return res.status(500).send({ mensaje: "No se pudo visualizar" })
+                return res.status(200).send({ Equipos: equiposEncontrados})
+            }).populate('idLiga idUsuario', 'nombre')
+        }else{
+            return res.status(500).send({ mensaje: "La liga no existe" })
+        }
+    })
 }
 
 module.exports = {
