@@ -103,7 +103,7 @@ function editarUsuarios(req, res) {
         })
 
     } else {
-        return res.status(500).send({ mensaje: 'Solo el administrador puede editar a los clientes' })
+        return res.status(500).send({ mensaje: 'Solo el administrador puede editar a los usuarios' })
     }
 }
 
